@@ -7,11 +7,18 @@ public class Graph {
 	private Map<String, Vertex> vertices = new HashMap<String, Vertex> ();
 	public PriorityQueue<Vertex> pq = new PriorityQueue<Vertex>(200, new Vertex());
 	
-	public void addVertex(String source, String dest, int weight) {
+	public void addEdge(String source, String dest, int weight) {
 		Vertex v = getVertex(source);
 		Vertex w = getVertex(dest);
 		v.adjacentD.add(new Edge(w, weight));
 		w.adjacentD.add(new Edge(v, weight));
+	}
+	
+	public void removeEdge(String source, String dest, int weight) {
+		Vertex v = getVertex(source);
+		Vertex w = getVertex(dest);
+		v.adjacentD.remove(new Edge(w, weight));
+		w.adjacentD.remove(new Edge(v, weight));
 	}
 	
 	private Vertex getVertex(String name) {
@@ -23,7 +30,8 @@ public class Graph {
 		return v;
 	}
 	
-	public void dijkstra (String init) {
+	public String dijkstra (String init) {
+		String s = "";
 		Vertex current;
 		Vertex start = (Vertex) vertices.get(init);
 		start.setWeight(0);
@@ -37,41 +45,41 @@ public class Graph {
 				handled++;
 				current.known = true;
 				compAdjEdges(current, vertWeight);
+				s = current.weight + " " + getPathString(current) + "\n";
 //				System.out.format("%-15s", current.name);
-				System.out.format("%-4d", (int)current.weight);
-				printPath(current);
-				System.out.println();
-			}
-		}
-	}
-	
-//	public void dijkstra (String init, String dest) {
-//		Vertex current;
-//		Vertex start = (Vertex) vertices.get(init);
-//		Vertex end = (Vertex) vertices.get(dest);
-//		start.setWeight(0);
-//		pq.add(start);
-//		int handled = 0;
-//		while (handled < vertices.size()) {
-//			current = pq.poll();
-//			//weight associated with the current vertex
-//			int vertWeight = current.getWeight();
-//			compAdjEdges(current, vertWeight);
-//			if (current.equals(end)) {
-//				System.out.format("%-15s", current.name);
-//				System.out.format("total weight: %-8d", (int)current.weight);
+//				System.out.format("%-4d", (int)current.weight);
 //				printPath(current);
 //				System.out.println();
-//				break;
-//			}
-//		}
-//	}
+			}
+		}
+		return s;
+	}
+	
+	public String dijkstra (String init, String dest) {
+		Vertex current;
+		Vertex start = (Vertex) vertices.get(init);
+		Vertex end = (Vertex) vertices.get(dest);
+		start.setWeight(0);
+		pq.add(start);
+		int handled = 0;
+		while (handled < vertices.size()) {
+			current = pq.poll();
+			//weight associated with the current vertex
+			int vertWeight = current.getWeight();
+			compAdjEdges(current, vertWeight);
+			if (current.equals(end)) {
+				String s = current.weight + " " + getPathString(current);
+				return s;
+			}
+		}
+		return null;
+	}
 	
 	public void compAdjEdges(Vertex s, int w) {
 		Vertex source = s;
 		int vertWeight = w;
-		int tempDist;
-		int origDist;
+		int tempWeight;
+		int origWeight;
 		/* Each adjacent edge to the source Vertex,
 		* (if it has not yet been handled) 
 		* has a weight which is added to the current pathWeight.
@@ -83,12 +91,12 @@ public class Graph {
 		for(Edge e : source.adjacentD) {
 			Edge curEdge = e;
 			Vertex curVer = e.getDestination();
-			origDist = curVer.getWeight();
+			origWeight = curVer.getWeight();
 			if (curVer.known == false) {
-				tempDist = curEdge.getWeight();
-				tempDist = tempDist + vertWeight;
-				if (tempDist < origDist) {
-					curVer.setWeight(tempDist);
+				tempWeight = curEdge.getWeight();
+				tempWeight = tempWeight + vertWeight;
+				if (tempWeight < origWeight) {
+					curVer.setWeight(tempWeight);
 					curVer.previous = source;
 					pq.add(curVer);
 				}
@@ -97,15 +105,18 @@ public class Graph {
 	}
 
 	public void printPath(Vertex c) {
+		System.out.println(getPathString(c));
+	}
+	
+	public String getPathString(Vertex c) {
 		Vertex current = c;
 		if (current.previous != null) {
-			printPath(current.previous);
-			System.out.print("-");
-			System.out.print(current.name);
+			return getPathString(current.previous) + "-" + current.name;
 		}
 		if (current.previous == null) {
-			System.out.print(current.name);
+			return current.name;
 		}
+		return null;
 	}
 	
 }
